@@ -1,0 +1,129 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public"]
+}
+
+// SCHEMA PUBLIC - Multi-tenant
+
+model Empresa {
+  id                 Int       @id @default(autoincrement())
+  ruc                String    @unique @db.VarChar(11)
+  razonSocial        String    @map("razon_social") @db.VarChar(200)
+  nombreComercial    String    @map("nombre_comercial") @db.VarChar(200)
+  subdominio         String    @unique @db.VarChar(50)
+  schemaName         String    @unique @map("schema_name") @db.VarChar(50)
+  emailFacturacion   String    @map("email_facturacion") @db.VarChar(100)
+  plan               String    @default("free") @db.VarChar(20)
+  maxLocales         Int       @default(1) @map("max_locales")
+  maxUsuarios        Int       @default(5) @map("max_usuarios")
+  activo             Boolean   @default(true)
+  creadoEn           DateTime  @default(now()) @map("creado_en")
+
+  locales   Local[]
+  roles     Rol[]
+  usuarios  Usuario[]
+
+  @@map("empresas")
+  @@schema("public")
+}
+
+model Local {
+  id          Int      @id @default(autoincrement())
+  empresaId   Int      @map("empresa_id")
+  nombre      String   @db.VarChar(100)
+  codigo      String   @db.VarChar(20)
+  tieneMesas  Boolean  @default(false) @map("tiene_mesas")
+  direccion   String?  @db.Text
+  telefono    String?  @db.VarChar(20)
+  activo      Boolean  @default(true)
+  creadoEn    DateTime @default(now()) @map("creado_en")
+
+  empresa        Empresa          @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  usuarioLocales UsuarioLocal[]
+
+  @@unique([empresaId, codigo])
+  @@map("locales")
+  @@schema("public")
+}
+
+model Rol {
+  id         Int      @id @default(autoincrement())
+  empresaId  Int      @map("empresa_id")
+  nombre     String   @db.VarChar(50)
+  esSistema  Boolean  @default(false) @map("es_sistema")
+  creadoEn   DateTime @default(now()) @map("creado_en")
+
+  empresa      Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  usuarios     Usuario[]
+  rolPermisos  RolPermiso[]
+
+  @@unique([empresaId, nombre])
+  @@map("roles")
+  @@schema("public")
+}
+
+model Permiso {
+  id          Int      @id @default(autoincrement())
+  codigo      String   @unique @db.VarChar(50)
+  nombre      String   @db.VarChar(100)
+  modulo      String   @db.VarChar(50)
+  descripcion String?  @db.Text
+
+  rolPermisos RolPermiso[]
+
+  @@map("permisos")
+  @@schema("public")
+}
+
+model RolPermiso {
+  id        Int     @id @default(autoincrement())
+  rolId     Int     @map("rol_id")
+  permisoId Int     @map("permiso_id")
+  activo    Boolean @default(true)
+
+  rol     Rol     @relation(fields: [rolId], references: [id], onDelete: Cascade)
+  permiso Permiso @relation(fields: [permisoId], references: [id], onDelete: Cascade)
+
+  @@unique([rolId, permisoId])
+  @@map("rol_permisos")
+  @@schema("public")
+}
+
+model Usuario {
+  id             Int      @id @default(autoincrement())
+  empresaId      Int      @map("empresa_id")
+  rolId          Int      @map("rol_id")
+  email          String   @unique @db.VarChar(100)
+  password       String   @db.VarChar(255)
+  nombreCompleto String   @map("nombre_completo") @db.VarChar(200)
+  telefono       String?  @db.VarChar(20)
+  activo         Boolean  @default(true)
+  creadoEn       DateTime @default(now()) @map("creado_en")
+
+  empresa        Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  rol            Rol            @relation(fields: [rolId], references: [id])
+  usuarioLocales UsuarioLocal[]
+
+  @@map("usuarios")
+  @@schema("public")
+}
+
+model UsuarioLocal {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int     @map("usuario_id")
+  localId   Int     @map("local_id")
+  activo    Boolean @default(true)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  local   Local   @relation(fields: [localId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, localId])
+  @@map("usuario_locales")
+  @@schema("public")
+}
