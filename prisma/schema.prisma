@@ -24,6 +24,7 @@ model Empresa {
   maxUsuarios        Int       @default(5) @map("max_usuarios")
   activo             Boolean   @default(true)
   creadoEn           DateTime  @default(now()) @map("creado_en")
+  actualizadoEn      DateTime  @updatedAt @map("actualizado_en")
 
   locales   Local[]
   roles     Rol[]
@@ -34,15 +35,16 @@ model Empresa {
 }
 
 model Local {
-  id          Int      @id @default(autoincrement())
-  empresaId   Int      @map("empresa_id")
-  nombre      String   @db.VarChar(100)
-  codigo      String   @db.VarChar(20)
-  tieneMesas  Boolean  @default(false) @map("tiene_mesas")
-  direccion   String?  @db.Text
-  telefono    String?  @db.VarChar(20)
-  activo      Boolean  @default(true)
-  creadoEn    DateTime @default(now()) @map("creado_en")
+  id             Int      @id @default(autoincrement())
+  empresaId      Int      @map("empresa_id")
+  nombre         String   @db.VarChar(100)
+  codigo         String   @db.VarChar(20)
+  tieneMesas     Boolean  @default(false) @map("tiene_mesas")
+  direccion      String?  @db.Text
+  telefono       String?  @db.VarChar(20)
+  activo         Boolean  @default(true)
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  actualizadoEn  DateTime @updatedAt @map("actualizado_en")
 
   empresa        Empresa          @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   usuarioLocales UsuarioLocal[]
@@ -53,11 +55,12 @@ model Local {
 }
 
 model Rol {
-  id         Int      @id @default(autoincrement())
-  empresaId  Int      @map("empresa_id")
-  nombre     String   @db.VarChar(50)
-  esSistema  Boolean  @default(false) @map("es_sistema")
-  creadoEn   DateTime @default(now()) @map("creado_en")
+  id             Int      @id @default(autoincrement())
+  empresaId      Int      @map("empresa_id")
+  nombre         String   @db.VarChar(50)
+  esSistema      Boolean  @default(false) @map("es_sistema")
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  actualizadoEn  DateTime @updatedAt @map("actualizado_en")
 
   empresa      Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   usuarios     Usuario[]
@@ -69,11 +72,12 @@ model Rol {
 }
 
 model Permiso {
-  id          Int      @id @default(autoincrement())
-  codigo      String   @unique @db.VarChar(50)
-  nombre      String   @db.VarChar(100)
-  modulo      String   @db.VarChar(50)
-  descripcion String?  @db.Text
+  id             Int      @id @default(autoincrement())
+  codigo         String   @unique @db.VarChar(50)
+  nombre         String   @db.VarChar(100)
+  modulo         String   @db.VarChar(50)
+  descripcion    String?  @db.Text
+  actualizadoEn  DateTime @updatedAt @map("actualizado_en")
 
   rolPermisos RolPermiso[]
 
@@ -82,10 +86,12 @@ model Permiso {
 }
 
 model RolPermiso {
-  id        Int     @id @default(autoincrement())
-  rolId     Int     @map("rol_id")
-  permisoId Int     @map("permiso_id")
-  activo    Boolean @default(true)
+  id             Int      @id @default(autoincrement())
+  rolId          Int      @map("rol_id")
+  permisoId      Int      @map("permiso_id")
+  activo         Boolean  @default(true)
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  actualizadoEn  DateTime @updatedAt @map("actualizado_en")
 
   rol     Rol     @relation(fields: [rolId], references: [id], onDelete: Cascade)
   permiso Permiso @relation(fields: [permisoId], references: [id], onDelete: Cascade)
@@ -105,6 +111,7 @@ model Usuario {
   telefono       String?  @db.VarChar(20)
   activo         Boolean  @default(true)
   creadoEn       DateTime @default(now()) @map("creado_en")
+  actualizadoEn  DateTime @updatedAt @map("actualizado_en")
 
   empresa        Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   rol            Rol            @relation(fields: [rolId], references: [id])
@@ -115,10 +122,12 @@ model Usuario {
 }
 
 model UsuarioLocal {
-  id        Int     @id @default(autoincrement())
-  usuarioId Int     @map("usuario_id")
-  localId   Int     @map("local_id")
-  activo    Boolean @default(true)
+  id             Int      @id @default(autoincrement())
+  usuarioId      Int      @map("usuario_id")
+  localId        Int      @map("local_id")
+  activo         Boolean  @default(true)
+  creadoEn       DateTime @default(now()) @map("creado_en")
+  actualizadoEn  DateTime @updatedAt @map("actualizado_en")
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   local   Local   @relation(fields: [localId], references: [id], onDelete: Cascade)

@@ -7,6 +7,7 @@ import { LocalesModule } from './locales/locales.module';
 import { RolesModule } from './roles/roles.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { PermisosModule } from './permisos/permisos.module';
+import { ProductosModule } from './productos/productos.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PermisosModule } from './permisos/permisos.module';
     RolesModule,
     UsuariosModule,
     PermisosModule,
+    ProductosModule,
   ],
   controllers: [UsuariosController],
   providers: [UsuariosService],

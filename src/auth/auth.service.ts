@@ -6,6 +6,7 @@ import { Prisma } from '@prisma/client'; // Importante: Importar tipos de Prisma
 import * as bcrypt from 'bcrypt';
 import { RegistroDto } from './dto/registro.dto';
 import { LoginDto } from './dto/login.dto';
+import { MenuItemDB, MenuItemResponse } from './interfaces/menu-item.interface';
 
 @Injectable()
 export class AuthService {
@@ -177,5 +178,131 @@ export class AuthService {
       creado_en TIMESTAMP DEFAULT NOW()
     )
   `);
+  }
+  async refreshPermisos(usuarioId: number) {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      include: {
+        empresa: true,
+        rol: {
+          include: {
+            rolPermisos: {
+              where: { activo: true },
+              include: { permiso: true },
+            },
+          },
+        },
+        usuarioLocales: {
+          where: { activo: true },
+          include: { local: true },
+        },
+      },
+    });
+
+    if (!usuario) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    const payload = {
+      sub: usuario.id,
+      email: usuario.email,
+      empresaId: usuario.empresaId,
+      schema: usuario.empresa.schemaName,
+      rol: usuario.rol.nombre,
+      locales: usuario.usuarioLocales.map((ul) => ul.local.id),
+      permisos: usuario.rol.rolPermisos.map((rp) => rp.permiso.codigo),
+    };
+
+    const nuevoToken = this.jwtService.sign(payload);
+
+    return {
+      accessToken: nuevoToken,
+      usuario: {
+        id: usuario.id,
+        email: usuario.email,
+        nombreCompleto: usuario.nombreCompleto,
+        rol: usuario.rol.nombre,
+        permisos: usuario.rol.rolPermisos.map((rp) => rp.permiso.codigo),
+      },
+    };
+  }
+  async obtenerMenu(usuarioId: number): Promise<MenuItemResponse[]> {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      include: {
+        rol: {
+          include: {
+            rolPermisos: {
+              where: { activo: true },
+              include: { permiso: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!usuario) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    const permisos = usuario.rol.rolPermisos.map((rp) => rp.permiso.codigo);
+    const esDueno = usuario.rol.nombre === 'Dueño';
+
+    // Obtener todos los menús
+    const todosLosMenus = await this.prisma.$queryRawUnsafe<MenuItemDB[]>(
+      `SELECT * FROM public.menu_items 
+     WHERE activo = true 
+     ORDER BY orden ASC`,
+    );
+
+    // Filtrar según permisos
+    const menusFiltrados = todosLosMenus.filter((item) => {
+      if (esDueno) return true;
+      if (!item.permiso_requerido) return true;
+      return permisos.includes(item.permiso_requerido);
+    });
+
+    // Construir árbol jerárquico
+    const construirArbol = (
+      parentId: number | null = null,
+    ): MenuItemResponse[] => {
+      return menusFiltrados
+        .filter((item) => item.parent_id === parentId)
+        .map((item) => ({
+          id: item.id,
+          codigo: item.codigo,
+          titulo: item.titulo,
+          icono: item.icono,
+          ruta: item.ruta,
+          hijos: construirArbol(item.id),
+        }));
+    };
+
+    return construirArbol();
+  }
+  async listarTodosLosMenus(): Promise<MenuItemResponse[]> {
+    const todosLosMenus = await this.prisma.$queryRawUnsafe<MenuItemDB[]>(
+      `SELECT * FROM public.menu_items 
+     WHERE activo = true 
+     ORDER BY orden ASC`,
+    );
+
+    const construirArbol = (
+      parentId: number | null = null,
+    ): MenuItemResponse[] => {
+      return todosLosMenus
+        .filter((item) => item.parent_id === parentId)
+        .map((item) => ({
+          id: item.id,
+          codigo: item.codigo,
+          titulo: item.titulo,
+          icono: item.icono,
+          ruta: item.ruta,
+          permisoRequerido: item.permiso_requerido,
+          hijos: construirArbol(item.id),
+        }));
+    };
+
+    return construirArbol();
   }
 }
