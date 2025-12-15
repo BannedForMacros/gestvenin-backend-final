@@ -8,6 +8,8 @@ import { RolesModule } from './roles/roles.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { PermisosModule } from './permisos/permisos.module';
 import { ProductosModule } from './productos/productos.module';
+import { UnidadesMedidaModule } from './unidades-medida/unidades-medida.module';
+import { CategoriasModule } from './categorias/categorias.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { ProductosModule } from './productos/productos.module';
     UsuariosModule,
     PermisosModule,
     ProductosModule,
+    UnidadesMedidaModule,
+    CategoriasModule,
   ],
   controllers: [UsuariosController],
   providers: [UsuariosService],
