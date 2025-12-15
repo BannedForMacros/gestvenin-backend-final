@@ -10,6 +10,7 @@ import { PermisosModule } from './permisos/permisos.module';
 import { ProductosModule } from './productos/productos.module';
 import { UnidadesMedidaModule } from './unidades-medida/unidades-medida.module';
 import { CategoriasModule } from './categorias/categorias.module';
+import { RequerimientosModule } from './requerimientos/requerimientos.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CategoriasModule } from './categorias/categorias.module';
     ProductosModule,
     UnidadesMedidaModule,
     CategoriasModule,
+    RequerimientosModule,
   ],
   controllers: [UsuariosController],
   providers: [UsuariosService],
