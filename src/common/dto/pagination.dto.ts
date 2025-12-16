@@ -19,4 +19,9 @@ export class PaginationDto {
   @IsOptional()
   @IsString({ message: 'La búsqueda debe ser un texto' })
   search?: string;
+
+  // ← AGREGAR ESTO
+  @IsOptional()
+  @IsString({ message: 'El estado debe ser un texto' })
+  estado?: string;
 }

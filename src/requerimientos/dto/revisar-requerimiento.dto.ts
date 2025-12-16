@@ -11,8 +11,8 @@ import { RequerimientoItemDto } from './requerimiento-item.dto';
 
 export class RevisarRequerimientoDto {
   @IsString({ message: 'La acción debe ser un texto' })
-  @IsIn(['aprobar', 'rechazar'], {
-    message: 'La acción debe ser: aprobar o rechazar',
+  @IsIn(['aprobar', 'rechazar', 'guardar'], {
+    message: 'La acción debe ser: aprobar, rechazar o guardar',
   })
   accion: string;
 

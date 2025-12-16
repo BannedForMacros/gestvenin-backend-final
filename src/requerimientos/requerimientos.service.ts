@@ -131,21 +131,20 @@ export class RequerimientosService {
     const skip = (page - 1) * limit;
     const searchParam = search ? `%${search}%` : null;
 
-    const puedeAprobar = permisos.includes('requerimientos.aprobar');
-    const puedeCrear = permisos.includes('requerimientos.crear');
+    // ← ELIMINAR ESTAS LÍNEAS
+    // const puedeAprobar = permisos.includes('requerimientos.aprobar');
+    // const puedeCrear = permisos.includes('requerimientos.crear');
 
-    let conditions = 'WHERE 1=1';
+    let conditions = "WHERE estado != 'eliminado'";
     const params: unknown[] = [limit, skip];
     let paramIndex = 3;
 
-    // Filtro por rol
-    if (!puedeAprobar && puedeCrear) {
-      conditions += ` AND creado_por = $${paramIndex}`;
-      params.push(usuarioId);
-      paramIndex++;
-    } else if (puedeAprobar && !puedeCrear) {
-      conditions += ` AND estado IN ('revision', 'aprobado', 'rechazado', 'comprado')`;
-    }
+    // ← ELIMINAR TODO ESTE BLOQUE
+    // if (puedeCrear && !puedeAprobar) {
+    //   conditions += ` AND creado_por = $${paramIndex}`;
+    //   params.push(usuarioId);
+    //   paramIndex++;
+    // }
 
     if (estado) {
       conditions += ` AND estado = $${paramIndex}`;
@@ -161,24 +160,23 @@ export class RequerimientosService {
     // 1. OBTENER DATOS
     const data = await this.prisma.$queryRawUnsafe<Requerimiento[]>(
       `SELECT * FROM "${schema}".requerimientos 
-       ${conditions}
-       ORDER BY creado_en DESC
-       LIMIT $1 OFFSET $2`,
+     ${conditions}
+     ORDER BY creado_en DESC
+     LIMIT $1 OFFSET $2`,
       ...params,
     );
 
     // 2. OBTENER TOTAL
     const countParams: unknown[] = [];
-    let countConditions = 'WHERE 1=1';
+    let countConditions = "WHERE estado != 'eliminado'";
     let countParamIndex = 1;
 
-    if (!puedeAprobar && puedeCrear) {
-      countConditions += ` AND creado_por = $${countParamIndex}`;
-      countParams.push(usuarioId);
-      countParamIndex++;
-    } else if (puedeAprobar && !puedeCrear) {
-      countConditions += ` AND estado IN ('revision', 'aprobado', 'rechazado', 'comprado')`;
-    }
+    // ← ELIMINAR ESTE BLOQUE TAMBIÉN
+    // if (puedeCrear && !puedeAprobar) {
+    //   countConditions += ` AND creado_por = $${countParamIndex}`;
+    //   countParams.push(usuarioId);
+    //   countParamIndex++;
+    // }
 
     if (estado) {
       countConditions += ` AND estado = $${countParamIndex}`;
@@ -193,7 +191,7 @@ export class RequerimientosService {
 
     const totalResult = await this.prisma.$queryRawUnsafe<{ count: bigint }[]>(
       `SELECT COUNT(*) as count FROM "${schema}".requerimientos 
-       ${countConditions}`,
+     ${countConditions}`,
       ...countParams,
     );
 
@@ -416,7 +414,7 @@ export class RequerimientosService {
     }
 
     return await this.prisma.$transaction(async (tx) => {
-      // 1. Si el aprobador editó items, actualizarlos
+      // 1. Si hay items, actualizarlos
       if (dto.items) {
         await tx.$queryRawUnsafe(
           `DELETE FROM "${schema}".requerimiento_items WHERE requerimiento_id = $1`,
@@ -427,7 +425,7 @@ export class RequerimientosService {
           // Validar unidad
           const unidadPermitida = await tx.$queryRawUnsafe<{ count: bigint }[]>(
             `SELECT COUNT(*) as count FROM "${schema}".producto_unidades 
-             WHERE producto_id = $1 AND unidad_medida_id = $2 AND activo = true`,
+           WHERE producto_id = $1 AND unidad_medida_id = $2 AND activo = true`,
             item.productoId,
             item.unidadMedidaId,
           );
@@ -449,8 +447,8 @@ export class RequerimientosService {
 
           await tx.$queryRawUnsafe(
             `INSERT INTO "${schema}".requerimiento_items 
-             (requerimiento_id, producto_id, unidad_medida_id, cantidad, precio_unitario_estimado, precio_total_estimado, observaciones)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+           (requerimiento_id, producto_id, unidad_medida_id, cantidad, precio_unitario_estimado, precio_total_estimado, observaciones)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             id,
             item.productoId,
             item.unidadMedidaId,
@@ -462,15 +460,33 @@ export class RequerimientosService {
         }
       }
 
-      // 2. Cambiar estado según acción
-      const nuevoEstado = dto.accion === 'aprobar' ? 'aprobado' : 'rechazado';
-      const camposAdicionales =
-        dto.accion === 'aprobar'
-          ? ', aprobado_por = $3, fecha_aprobacion = NOW()'
-          : ', rechazado_por = $3, fecha_rechazo = NOW()';
+      // 2. Lógica según acción
+      if (dto.accion === 'guardar') {
+        // SOLO GUARDAR - Mantiene estado "revision"
+        const resultado = await tx.$queryRawUnsafe<Requerimiento[]>(
+          `UPDATE "${schema}".requerimientos 
+         SET observaciones_aprobador = $1,
+             revisado_por = $2,
+             fecha_revision = NOW(),
+             actualizado_por = $2,
+             actualizado_en = NOW()
+         WHERE id = $3
+         RETURNING *`,
+          dto.observaciones || null,
+          usuarioId,
+          id,
+        );
+        return resultado[0];
+      } else {
+        // APROBAR o RECHAZAR - Cambia estado
+        const nuevoEstado = dto.accion === 'aprobar' ? 'aprobado' : 'rechazado';
+        const camposAdicionales =
+          dto.accion === 'aprobar'
+            ? ', aprobado_por = $3, fecha_aprobacion = NOW()'
+            : ', rechazado_por = $3, fecha_rechazo = NOW()';
 
-      const resultado = await tx.$queryRawUnsafe<Requerimiento[]>(
-        `UPDATE "${schema}".requerimientos 
+        const resultado = await tx.$queryRawUnsafe<Requerimiento[]>(
+          `UPDATE "${schema}".requerimientos 
          SET estado = $1, 
              observaciones_aprobador = $2,
              revisado_por = $3,
@@ -480,13 +496,13 @@ export class RequerimientosService {
              ${camposAdicionales}
          WHERE id = $4
          RETURNING *`,
-        nuevoEstado,
-        dto.observaciones || null,
-        usuarioId,
-        id,
-      );
-
-      return resultado[0];
+          nuevoEstado,
+          dto.observaciones || null,
+          usuarioId,
+          id,
+        );
+        return resultado[0];
+      }
     });
   }
 
