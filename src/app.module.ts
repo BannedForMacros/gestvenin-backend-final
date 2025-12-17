@@ -11,6 +11,8 @@ import { ProductosModule } from './productos/productos.module';
 import { UnidadesMedidaModule } from './unidades-medida/unidades-medida.module';
 import { CategoriasModule } from './categorias/categorias.module';
 import { RequerimientosModule } from './requerimientos/requerimientos.module';
+import { EntradasCentralModule } from './entradas-central/entradas-central.module';
+import { ProveedoresModule } from './proveedores/proveedores.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { RequerimientosModule } from './requerimientos/requerimientos.module';
     UnidadesMedidaModule,
     CategoriasModule,
     RequerimientosModule,
+    EntradasCentralModule,
+    ProveedoresModule,
   ],
   controllers: [UsuariosController],
   providers: [UsuariosService],
