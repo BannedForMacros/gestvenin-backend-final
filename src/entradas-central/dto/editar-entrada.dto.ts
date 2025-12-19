@@ -1,4 +1,4 @@
-// src/entradas-central/dto/crear-entrada.dto.ts
+// src/entradas-central/dto/editar-entrada.dto.ts
 import {
   IsString,
   IsOptional,
@@ -6,22 +6,11 @@ import {
   IsArray,
   ValidateNested,
   ArrayMinSize,
-  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EntradaItemDto } from './entrada-item.dto';
 
-export class CrearEntradaDto {
-  @IsString({ message: 'El tipo debe ser un texto' })
-  @IsIn(['manual', 'requerimiento'], {
-    message: 'El tipo debe ser: manual o requerimiento',
-  })
-  tipo: string;
-
-  @IsOptional()
-  @IsInt({ message: 'El requerimiento debe ser un número' })
-  requerimientoId?: number;
-
+export class EditarEntradaDto {
   @IsOptional()
   @IsInt({ message: 'El proveedor debe ser un número' })
   proveedorId?: number;

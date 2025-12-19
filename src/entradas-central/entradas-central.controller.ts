@@ -2,9 +2,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -18,6 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { EntradasCentralService } from './entradas-central.service';
 import { CrearEntradaDto } from './dto/crear-entrada.dto';
+import { EditarEntradaDto } from './dto/editar-entrada.dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { PermisosGuard } from '../common/guards/permisos.guard';
@@ -62,5 +65,23 @@ export class EntradasCentralController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     return this.entradasService.obtenerPorId(req.user.schema, id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Editar entrada' })
+  @RequierePermisos('inventario_central.entradas')
+  editar(
+    @Req() req: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: EditarEntradaDto,
+  ) {
+    return this.entradasService.editar(req.user.schema, id, req.user.id, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar entrada (anular)' })
+  @RequierePermisos('inventario_central.entradas')
+  eliminar(@Req() req: RequestWithUser, @Param('id', ParseIntPipe) id: number) {
+    return this.entradasService.eliminar(req.user.schema, id, req.user.id);
   }
 }

@@ -4,10 +4,11 @@ export interface EntradaCentral {
   codigo: string;
   requerimiento_id: number | null;
   tipo: string;
-  proveedor: string | null;
+  proveedor_id: number | null;
   comprobante: string | null;
   total: number;
   observaciones: string | null;
+  anulado: boolean;
   creado_por: number;
   actualizado_por: number | null;
   creado_en: Date;
@@ -19,9 +20,10 @@ export interface EntradaCentralItem {
   entrada_id: number;
   producto_id: number;
   unidad_medida_id: number;
-  cantidad: number;
-  precio_total: number;
+  cantidad: number; // En la unidad seleccionada
+  cantidad_base: number; // Convertida a unidad base
   precio_unitario: number;
+  precio_total: number;
 }
 
 export interface EntradaCentralCompleta extends EntradaCentral {
