@@ -36,7 +36,7 @@ export class EntradasCentralController {
 
   @Post()
   @ApiOperation({ summary: 'Crear entrada al inventario central' })
-  @RequierePermisos('inventario_central.entradas')
+  @RequierePermisos('inventario_central.crear_entradas')
   crear(@Req() req: RequestWithUser, @Body() dto: CrearEntradaDto) {
     return this.entradasService.crear(req.user.schema, req.user.id, dto);
   }
@@ -46,7 +46,7 @@ export class EntradasCentralController {
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   @ApiQuery({ name: 'search', required: false, type: String })
-  @RequierePermisos('inventario_central.ver')
+  @RequierePermisos('inventario_central.ver_entradas')
   listar(@Req() req: RequestWithUser, @Query() paginationDto: PaginationDto) {
     const { page, limit, search } = paginationDto;
     return this.entradasService.listarPaginado(
@@ -59,7 +59,7 @@ export class EntradasCentralController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener entrada por ID' })
-  @RequierePermisos('inventario_central.ver')
+  @RequierePermisos('inventario_central.ver_entradas')
   obtenerPorId(
     @Req() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -69,7 +69,7 @@ export class EntradasCentralController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Editar entrada' })
-  @RequierePermisos('inventario_central.entradas')
+  @RequierePermisos('inventario_central.editar_entradas')
   editar(
     @Req() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -80,7 +80,7 @@ export class EntradasCentralController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar entrada (anular)' })
-  @RequierePermisos('inventario_central.entradas')
+  @RequierePermisos('inventario_central.eliminar_entradas')
   eliminar(@Req() req: RequestWithUser, @Param('id', ParseIntPipe) id: number) {
     return this.entradasService.eliminar(req.user.schema, id, req.user.id);
   }
