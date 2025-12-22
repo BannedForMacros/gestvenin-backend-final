@@ -2,7 +2,6 @@
 import {
   IsString,
   IsOptional,
-  IsInt,
   IsArray,
   ValidateNested,
   ArrayMinSize,
@@ -11,14 +10,6 @@ import { Type } from 'class-transformer';
 import { EntradaItemDto } from './entrada-item.dto';
 
 export class EditarEntradaDto {
-  @IsOptional()
-  @IsInt({ message: 'El proveedor debe ser un número' })
-  proveedorId?: number;
-
-  @IsOptional()
-  @IsString({ message: 'El comprobante debe ser un texto' })
-  comprobante?: string;
-
   @IsOptional()
   @IsString({ message: 'Las observaciones deben ser texto' })
   observaciones?: string;

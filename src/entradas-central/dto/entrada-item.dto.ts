@@ -1,9 +1,21 @@
 // src/entradas-central/dto/entrada-item.dto.ts
-import { IsInt, IsNumber, Min } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class EntradaItemDto {
   @IsInt({ message: 'El producto debe ser un número' })
   productoId: number;
+
+  @IsOptional()
+  @IsInt({ message: 'El proveedor debe ser un número' })
+  proveedorId?: number;
+
+  @IsOptional()
+  @IsString({ message: 'El comprobante debe ser un texto' })
+  comprobante?: string;
+
+  @IsOptional()
+  @IsString({ message: 'La fecha de compra debe ser un texto (YYYY-MM-DD)' })
+  fechaCompra?: string;
 
   @IsInt({ message: 'La unidad de medida debe ser un número' })
   unidadMedidaId: number;

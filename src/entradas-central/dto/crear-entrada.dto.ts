@@ -23,14 +23,6 @@ export class CrearEntradaDto {
   requerimientoId?: number;
 
   @IsOptional()
-  @IsInt({ message: 'El proveedor debe ser un número' })
-  proveedorId?: number;
-
-  @IsOptional()
-  @IsString({ message: 'El comprobante debe ser un texto' })
-  comprobante?: string;
-
-  @IsOptional()
   @IsString({ message: 'Las observaciones deben ser texto' })
   observaciones?: string;
 

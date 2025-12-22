@@ -1,11 +1,8 @@
 // src/entradas-central/interfaces/entrada-central.interface.ts
 export interface EntradaCentral {
   id: number;
-  codigo: string;
   requerimiento_id: number | null;
   tipo: string;
-  proveedor_id: number | null;
-  comprobante: string | null;
   total: number;
   observaciones: string | null;
   anulado: boolean;
@@ -19,11 +16,15 @@ export interface EntradaCentralItem {
   id: number;
   entrada_id: number;
   producto_id: number;
+  proveedor_id: number | null;
+  comprobante: string | null;
+  fecha_compra: Date;
   unidad_medida_id: number;
-  cantidad: number; // En la unidad seleccionada
-  cantidad_base: number; // Convertida a unidad base
+  cantidad: number;
+  cantidad_base: number;
   precio_unitario: number;
   precio_total: number;
+  creado_en: Date;
 }
 
 export interface EntradaCentralCompleta extends EntradaCentral {
